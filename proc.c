@@ -190,6 +190,7 @@ fork(void)
   }
 
   // Copy process state from proc.
+  cprintf("fork called for %s\n", curproc->name);
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
@@ -197,6 +198,7 @@ fork(void)
     return -1;
   }
   np->sz = curproc->sz;
+  np->stack_sz = curproc->stack_sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
 

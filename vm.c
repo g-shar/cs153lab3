@@ -223,14 +223,15 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 {
   char *mem;
   uint a;
-
-  if(newsz >= KERNBASE)
+  //cprintf("here %p\n", newsz);
+  if(newsz >= KERNBASE + 1)
     return 0;
   if(newsz < oldsz)
     return oldsz;
 
   a = PGROUNDUP(oldsz);
   for(; a < newsz; a += PGSIZE){
+    //cprintf("a: %p\n", a);
     mem = kalloc();
     if(mem == 0){
       cprintf("allocuvm out of memory\n");
@@ -322,6 +323,7 @@ copyuvm(pde_t *pgdir, uint sz)
 
   if((d = setupkvm()) == 0)
     return 0;
+
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
@@ -335,6 +337,22 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
+
+  for(i = KERNBASE - 2*PGSIZE; i < KERNBASE; i += PGSIZE){
+    //cprintf("%p\n", i);
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
+      goto bad;
+  }
+
   return d;
 
 bad:
