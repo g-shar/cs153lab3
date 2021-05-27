@@ -198,7 +198,7 @@ fork(void)
     return -1;
   }
   np->sz = curproc->sz;
-  np->stack_sz = curproc->stack_sz;
+  np->stack_sz = curproc->stack_sz; // copy parent's stack size
   np->parent = curproc;
   *np->tf = *curproc->tf;
 

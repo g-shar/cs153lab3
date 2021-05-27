@@ -224,13 +224,13 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
   //cprintf("here %p\n", newsz);
-  if(newsz >= KERNBASE + 1)
+  if(newsz >= KERNBASE - 2*PGSIZE)   // new upper bound for heap
     return 0;
   if(newsz < oldsz)
     return oldsz;
 
   a = PGROUNDUP(oldsz);
-  for(; a < newsz; a += PGSIZE){
+  for(; a < newsz; a += PGSIZE){    
     //cprintf("a: %p\n", a);
     mem = kalloc();
     if(mem == 0){
@@ -324,7 +324,7 @@ copyuvm(pde_t *pgdir, uint sz)
   if((d = setupkvm()) == 0)
     return 0;
 
-  for(i = 0; i < sz; i += PGSIZE){
+  for(i = 0; i < sz; i += PGSIZE){ // copies code & data, heap
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
@@ -338,7 +338,7 @@ copyuvm(pde_t *pgdir, uint sz)
       goto bad;
   }
 
-  for(i = KERNBASE - 2*PGSIZE; i < KERNBASE; i += PGSIZE){
+  for(i = KERNBASE - 2*PGSIZE; i < KERNBASE; i += PGSIZE){ // copies stack & page guard
     //cprintf("%p\n", i);
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
