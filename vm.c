@@ -224,7 +224,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
   //cprintf("here %p\n", newsz);
-  if(newsz >= KERNBASE + 1)
+  if(newsz >= KERNBASE)
     return 0;
   if(newsz < oldsz)
     return oldsz;
@@ -337,7 +337,7 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
-
+  
   for(i = KERNBASE - 2*PGSIZE; i < KERNBASE; i += PGSIZE){
     //cprintf("%p\n", i);
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)

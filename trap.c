@@ -46,6 +46,16 @@ trap(struct trapframe *tf)
     return;
   }
 
+  if(tf->trapno == T_PGFLT) {
+    pde_t *pgdir;
+    pgdir = myproc()->pgdir;
+    if(myproc()->tf->esp - PGSIZE > myproc()->sz) {
+      cprintf("Increased stack size\n");
+      allocuvm(pgdir, myproc()->tf->esp - PGSIZE, myproc()->tf->esp - 1);
+      return;
+    }
+  }
+
   switch(tf->trapno){
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
